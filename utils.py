@@ -1,4 +1,5 @@
 import sys
+import os
 
 def memcrc(b):
 
@@ -71,6 +72,53 @@ def memcrc(b):
         s = UNSIGNED(s << 8) ^ crctab[(s >> 24) ^ c]
     return UNSIGNED(~s)
 
-def dir_checksum():
+def dir_checksum(root, level=1):
+
+    print('\n{}Checking path: {}'.format('\t'*(level-1), root))
+    root_checksum = get_checksum_dir(root, level)
+    if level == 1:
+        os.makedirs(root_checksum, exist_ok=True)
+
+    folder_items = os.listdir(root)
+    for item in folder_items:
+
+        full_path = join_path(root, item)
+        full_path_checksum = join_path(root_checksum, item)
+
+        if os.path.isfile(full_path):
+            print('{}Writing checksum of file: {}'.format('\t'*level, full_path))
+            write_checksum(full_path, full_path_checksum)
+
+        else:
+            os.makedirs(full_path_checksum, exist_ok=True)
+            dir_checksum(full_path, level+1)
+
+    return True
+
+def join_path(root, element):
+
+    path = os.path.join(root, element)
+    path = path.replace('\\', '/')
+
+    return path
+
+def get_checksum_dir(root, level):
+
+    path_subfolders = root.split('/')
+    path_subfolders[-level] = path_subfolders[-level] + '_checksum'
+
+    return '/'.join(path_subfolders)
+
+
+def write_checksum(input, output):
+
+    output = os.path.splitext(output)[0]+'.sum'
+
+    with open(input, 'rb') as f:
+        data = f.read()
+    checksum = memcrc(data)
+
+    with open(output, 'w') as f:
+        f.write(str(checksum))
 
     return True

@@ -1,11 +1,15 @@
 import sys
+import os
 import utils
-
-ROOT = sys.argv[0]
 
 def main():
 
-    utils.dir_checksum(ROOT)
+    try:
+        root = os.path.abspath(sys.argv[1])
+    except IndexError: # no path provided
+        root = os.path.abspath('./')
+
+    utils.dir_checksum(root)
 
     return True
 
